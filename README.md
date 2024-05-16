@@ -3,8 +3,6 @@
 
 ## Usage
 
-Somewhere in your app initialization module:
-
 ```
 const { db } = require('node-sqldb');
 const PG = require('node-sqldb-pg');
@@ -14,11 +12,11 @@ const dbOptions = {
   host: 'localhost',
   port: 5432,
   user: 'postgres',
-  password: 'postgres',
+  password: 'xxx',
   database: 'app-db',
   poolSize: 10
 };
-const driver = PG(dbOptions);
+const driver = new PG(dbOptions);
 
 // Init the DB
 await db.initialize(driver);
@@ -27,22 +25,23 @@ await db.initialize(driver);
 // Then run some queries
 //
 // No transaction
-await db.use(null, async (conn) => {
+const rows = await db.use(null, async (conn) => {
   const rows = await conn.query("SELECT * FROM users");
-  // do something with the rows...
-})
+  // ...
+  return rows;
+});
 
 // OR
 const rows = await db.query(null, "SELECT * FROM users");
 
 // Transaction Read Committed
-// 'rc' is actually defined in the Driver (PG in this case)
-await db.use('rc', async (conn) => {
+// 'RC' is actually defined in the Driver (PG in this case)
+await db.use(db.txIsolationLevels.RC, async (conn) => {
   await conn.exec("INSERT INTO cart(name,value) VALUES($1, $2)", ["item1", 1]);
 })
 
 // OR
-await db.exec('rc', "INSERT INTO cart(name,value) VALUES($1, $2)", ["item1", 1]);
+await db.exec(db.txIsolationLevels.RC, "INSERT INTO cart(name,value) VALUES($1, $2)", ["item1", 1]);
 
 // Note that in both cases the transaction will be automatically committed/rolled back before db.use() or db.exec() return.
 
@@ -54,15 +53,24 @@ await db.exec('rc', "INSERT INTO cart(name,value) VALUES($1, $2)", ["item1", 1])
 
 ## API
 
+### `> txIsolationLevels`
+
+Object containing the various possible transaction isolation levels.
+Those levels are defined by the driver and exposed here for convenience.
+
+For instance, the Postgres driver (`node-sqldb-pg`) exposes the following levels: `RC` (Read Committed), `RR` (Repeatable Read) and `SER` (Serializable)
+
+
 ### `> initialize(driver, options={})`
 
 Initializes the DB module with the given `driver` and `options`.
+
 `driver` is a database engine driver whose prototype is exported as `driverPrototype`. For instance, see the `node-sqldb-pg` Postgres driver.
 
 `options` can contain the following fields:
 
 * `runMigrations`: boolean to indicate if migrations should be executed during initialization (default: false)
-* `logger`: object used for logging and exposing the following functions: trace,debug,info,warn,error (default: internal simple logger)
+* `logger`: object used for logging and exposing the following functions: `trace`,`debug`,`info`,`warn`,`error` (default: internal simple logger)
 
 
 ### `> shutdown()`
@@ -81,7 +89,7 @@ Get a connection from the DB and invoke `fnExecution(conn)` where you can descri
 
 Will return whatever `fnExecution` returns.
 
-`conn` (optional) = there are case where you might already have a connection but unsure. You could thus do: `await db.use(conn||'rr', ...)`
+`conn` (optional) = there are case where you might already have a connection but unsure about it. You could thus do: `await db.use(conn||'rr', ...)`
 
 `tx_isolation` (optional), null for no transaction, otherwise provide a string that the DB driver understands to specify the type of transaction to use.
 
@@ -103,8 +111,8 @@ Will return whatever `fnExecution` returns.
 await db.use(null, async (conn) => { ... });
 await db.use(async (conn) => { ... });
 
-// Tx
-const output = await db.use('rr', async (conn) => {
+// With transactions
+const output = await db.use(db.txIsolationLevels.RR, async (conn) => {
   const rows = await conn.query("SELECT * FROM users");
   if (rows.length === 0) {
     await conn.exec("INSERT INTO users(name,address) VALUES($1,$2)", newUser.name, newUser.address);
