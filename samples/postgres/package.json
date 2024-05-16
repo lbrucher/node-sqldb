@@ -1,0 +1,16 @@
+{
+  "name": "node-sqldb-sample-postgres",
+  "version": "1.0.0",
+  "description": "Sample app using node-sqldb and the Postgres driver",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"There are no tests here!\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Laurent Brucher <laurent.brucher@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
