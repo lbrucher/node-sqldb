@@ -40,9 +40,9 @@ async function main() {
 
   const app = express();
 
-  app.get('/users',     Users.getUsers);
-  app.get('/users/:id', Users.getUser)
-  app.post('/users',    Users.addUser);
+  app.get ('/users',     Users.getUsers);
+  app.get ('/users/:id', Users.getUser)
+  app.post('/users',     Users.addUser);
 
   app.listen(5000);
   logger.info("Ready.");
