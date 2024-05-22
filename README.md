@@ -1,4 +1,6 @@
-# Library to help working with SQL in NodeJS apps
+# Convenience library to work with SQL in NodeJS apps
+
+Also see [samples](samples/)
 
 
 ## Usage
@@ -98,6 +100,24 @@ Will return whatever `fnExecution` returns.
 * `commit()`: commit the transaction. Does nothing if the query is not executed within a transaction.
 * `rollback(err)`: roll back the transaction. Does nothing if the query is not executed within a transaction.
 
+
+`use()` will automatically commit or roll back the transaction (when a transaction has actually been started) upon success or failure. In case of failure and after rollback has been invoked, the original exception will be propagated:
+
+```
+try {
+	await db.use('rr', async (conn) => {
+		throw 'boo';
+	});
+}
+catch(err){
+	// transaction has been rolled back and err === 'boo'
+}
+```
+
+`use(tx_isolation, async (conn) => { ... })` also manages retrieving and releasing client connections with the DB (the actual DB connection is wrapped inside `conn`).
+Client connections can come from a DB pool or not, that is up to the driver to manage.
+
+
 #### Examples
 
 ```
@@ -112,7 +132,7 @@ const data = await db.use(db.txIsolationLevels.RR, async (conn) => {
   if (rows.length === 0) {
     await conn.exec("INSERT INTO users(name,address) VALUES($1,$2)", newUser.name, newUser.address);
 
-    // This is not required as the Tx will automatically be committed after this function ends.
+    // This is not required as the transaction will automatically be committed after this function ends.
     await conn.commit();
   }
 
@@ -174,10 +194,10 @@ A driver implementation must export a constructor function whose prototype is `d
 function MyDriver(options) {
   ...
 
-  // Implement whatever `driverPrototype` defines:
+  // Implement whatever 'driverPrototype' defines:
   this.txIsolationLevels = { ... };
 
-  this.initialize = async function(opts = {}) {
+  this.initialize = async function(opts) {
   }
 
   this.shutdown = async function() {
