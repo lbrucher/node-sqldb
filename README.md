@@ -25,7 +25,7 @@ await db.initialize(driver);
 // Then run some queries
 //
 // No transaction
-const rows = await db.use(null, async (conn) => {
+const rows = await db.use(async (conn) => {
   const rows = await conn.query("SELECT * FROM users");
   // ...
   return rows;
@@ -44,11 +44,6 @@ await db.use(db.txIsolationLevels.RC, async (conn) => {
 await db.exec(db.txIsolationLevels.RC, "INSERT INTO cart(name,value) VALUES($1, $2)", ["item1", 1]);
 
 // Note that in both cases the transaction will be automatically committed/rolled back before db.use() or db.exec() return.
-
-
-
-
-
 ```
 
 ## API
@@ -112,7 +107,7 @@ await db.use(null, async (conn) => { ... });
 await db.use(async (conn) => { ... });
 
 // With transactions
-const output = await db.use(db.txIsolationLevels.RR, async (conn) => {
+const data = await db.use(db.txIsolationLevels.RR, async (conn) => {
   const rows = await conn.query("SELECT * FROM users");
   if (rows.length === 0) {
     await conn.exec("INSERT INTO users(name,address) VALUES($1,$2)", newUser.name, newUser.address);
@@ -124,7 +119,7 @@ const output = await db.use(db.txIsolationLevels.RR, async (conn) => {
   return "ok";
 });
 
-// output === "ok"
+// data === "ok"
 ```
 
 ### `> useWithRetry`
@@ -171,8 +166,70 @@ Similar to `conn.exec()`, `sql` could be an array of SQL strings (`params` unuse
 
 ## Creating a new driver
 
-TODO
+Along with exposing the `db` object, this library also exposes [`driverPrototype`](lib/driver/driver-prototype.js), the "interface" any driver must implement.
 
-## Development
+A driver implementation must export a constructor function whose prototype is `driverPrototype`.
 
-TODO
+```
+function MyDriver(options) {
+  ...
+
+  // Implement whatever `driverPrototype` defines:
+  this.txIsolationLevels = { ... };
+
+  this.initialize = async function(opts = {}) {
+  }
+
+  this.shutdown = async function() {
+  }
+
+  this.getClient = async function() {
+  }
+
+  this.releaseClient = async function(client) {
+  }
+
+  this.query = async function(client, sql, params) {
+  }
+
+  this.exec = async function(client, sql, params) {
+  }
+
+  this.startTransaction = async function(client, tx_isolation_level) {
+  }
+
+  // Optional
+  // this.commitTransaction = async function (client) {
+  // }
+
+  // Optional
+  // this.rollbackTransaction = async function(client) {
+  // }
+
+  this.ensureMigrationsTable = async function (migrationsTableName) {
+  }
+
+  this.listExecutedMigrationNames = async function(migrationsTableName) {
+  }
+
+  this.logMigrationSuccessful = async function(conn, migrationsTableName, migrationName) {
+  }
+  
+  this.getMigrationTransactionIsolationLevel = function() {
+  }
+}
+
+Object.assign(MyDriver.prototype, driverPrototype);
+module.exports = MyDriver;
+```
+
+The code that wants to use that driver will do so this way:
+
+```
+const { db } = require('node-sqldb');
+const MyDriver = require(...);
+
+const myDriver = new MyDriver(...);
+await db.initialize(myDriver, ...);
+```
+
