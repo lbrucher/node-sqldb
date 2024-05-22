@@ -2,7 +2,7 @@
 const express = require('express');
 const { db } = require('../../');
 const PG = require('node-sqldb-pg');
-const Users = require('./lib/users');
+const User = require('./lib/user');
 const logger = require('./lib/logger');
 
 
@@ -20,11 +20,8 @@ async function initialize() {
   };
   const driver = new PG(dbOptions);
 
-  // Init the DB
-  await db.initialize(driver, { logger });
-
-  // Run migrations
-//  await db.runMigrations();
+  // Init the DB & run migrations automatically
+  await db.initialize(driver, { logger, runMigrations:true });
 }
 
 async function shutdown() {
@@ -40,12 +37,29 @@ async function main() {
 
   const app = express();
 
-  app.get ('/users',     Users.getUsers);
-  app.get ('/users/:id', Users.getUser)
-  app.post('/users',     Users.addUser);
+  app.get ('/users',     User.getUsers);
+  app.get ('/users/:id', User.getUser)
+  app.post('/users',     [express.json()], User.addUser);
+
+  app.all('*', (req, res) => {
+    res.sendStatus(404);
+  });
+
+  // final error handler
+  app.use(function(err,req,res,next) {
+    logger.info("XXXXXXXXXXXXXX");
+    logger.error(err.stack||err);
+    if (process.env['NODE_ENV'] === 'production'){
+        res.sendStatus(err.status||500);
+    }
+    else {
+        res.status(err.status||500).send(err.message);
+    }
+  });
+
 
   app.listen(5000);
-  logger.info("Ready.");
+  logger.info("Server ready.");
 }
 
 // graceful shutdown
