@@ -1,5 +1,5 @@
 'use strict';
-const driverPrototype = require('./lib/drivers/driver-prototype');
+const driverPrototype = require('./lib/driver/driver-prototype');
 const db = require('./lib/db');
 
 exports.driverPrototype = driverPrototype;
