@@ -9,7 +9,7 @@
   "keywords": [
     "sql"
   ],
-  "author": "Laurent Brucher <laurent.brucher@idelis.be>",
+  "author": "Laurent Brucher <laurent.brucher@gmail.com>",
   "license": "ISC",
   "devDependencies": {
     "mocha": "^10.4.0",
