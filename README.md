@@ -171,8 +171,8 @@ Similar to `conn.exec()`, `sql` could be an array of SQL strings (`params` unuse
 
 ## Creating a new driver
 
-
+TODO
 
 ## Development
 
-
+TODO
