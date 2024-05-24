@@ -1,7 +1,7 @@
 'use strict';
 const express = require('express');
 const { db } = require('../../');
-const PG = require('node-sqldb-pg');
+const PG = require('use-db-pg');
 const User = require('./lib/user');
 const logger = require('./lib/logger');
 

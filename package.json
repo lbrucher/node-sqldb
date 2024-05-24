@@ -1,5 +1,5 @@
 {
-  "name": "node-sqldb",
+  "name": "use-db",
   "version": "1.0.0",
   "description": "Library to help working with SQL in NodeJS apps",
   "main": "index.js",

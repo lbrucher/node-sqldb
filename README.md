@@ -6,8 +6,8 @@ Also see [samples](samples/)
 ## Usage
 
 ```
-const { db } = require('node-sqldb');
-const PG = require('node-sqldb-pg');
+const { db } = require('use-db');
+const PG = require('use-db-pg');
 
 // We'll be using the Postgres driver
 const dbOptions = {
@@ -55,14 +55,14 @@ await db.exec(db.txIsolationLevels.RC, "INSERT INTO cart(name,value) VALUES($1, 
 Object containing the various possible transaction isolation levels.
 Those levels are defined by the driver and exposed here for convenience.
 
-For instance, the Postgres driver (`node-sqldb-pg`) exposes the following levels: `RC` (Read Committed), `RR` (Repeatable Read) and `SER` (Serializable)
+For instance, the Postgres driver (`use-db-pg`) exposes the following levels: `RC` (Read Committed), `RR` (Repeatable Read) and `SER` (Serializable)
 
 
 ### `> initialize(driver, options={})`
 
 Initializes the DB module with the given `driver` and `options`.
 
-`driver` is a database engine driver whose prototype is exported as `driverPrototype`. For instance, see the `node-sqldb-pg` Postgres driver.
+`driver` is a database engine driver whose prototype is exported as `driverPrototype`. For instance, see the `use-db-pg` Postgres driver.
 
 `options` can contain the following fields:
 
@@ -246,7 +246,7 @@ module.exports = MyDriver;
 The code that wants to use that driver will do so this way:
 
 ```
-const { db } = require('node-sqldb');
+const { db } = require('use-db');
 const MyDriver = require(...);
 
 const myDriver = new MyDriver(...);

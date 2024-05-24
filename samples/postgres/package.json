@@ -1,7 +1,7 @@
 {
-  "name": "node-sqldb-sample-postgres",
+  "name": "use-db-sample-postgres",
   "version": "1.0.0",
-  "description": "Sample app using node-sqldb and the Postgres driver",
+  "description": "Sample app using use-db and the Postgres driver",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
