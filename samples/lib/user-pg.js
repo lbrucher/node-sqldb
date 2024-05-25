@@ -1,7 +1,21 @@
 'use strict';
-const { db } = require('../../..');
+const { db } = require('../..');
+const PG = require('use-db-pg');
 const logger = require('./logger');
 
+
+exports.createDriver = () => {
+  const dbOptions = {
+    host: 'localhost',
+    port: 5432,
+    user: process.env['DB_USER'],
+    password: process.env['DB_PASSWORD'],
+    database: process.env['DB_NAME'],
+    poolSize: 10
+  };
+  
+  return new PG(dbOptions);
+}
 
 exports.getUsers = async (req, res) => {
   const users = await db.query(null, "SELECT u.id, u.name, a.street, a.postcode, a.city FROM \"user\" u, \"address\" a WHERE u.address_id = a.id");

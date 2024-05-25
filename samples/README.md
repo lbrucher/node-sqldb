@@ -14,5 +14,5 @@ $ export DB_NAME=
 Then:
 
 ```
-$ npm start
+$ npm start <pg|mysql|...>
 ```

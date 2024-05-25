@@ -1,4 +1,4 @@
-# Convenience library to work with SQL in NodeJS apps
+# Convenience library to work with SQL databases in NodeJS apps
 
 Also see [samples](samples/)
 

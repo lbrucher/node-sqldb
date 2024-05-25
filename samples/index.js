@@ -1,27 +1,33 @@
 'use strict';
 const express = require('express');
-const { db } = require('../../');
-const PG = require('use-db-pg');
-const User = require('./lib/user');
+const { db } = require('../');
 const logger = require('./lib/logger');
+const Path = require('path');
+
+const driverNames = ['pg', 'mysql'];
+const driverName = process.argv[2];
+let User;
 
 
 async function initialize() {
-  logger.setLevel('trace');
+  // validate driver
+  if (!driverNames.includes(driverName)){
+    console.log("Invalid or missing driver parameter!");
+    console.log(`Usage: npm start <${driverNames.join('|')}>`);
+    process.exit(-1);
+  }
 
-  // We'll be using the Postgres driver
-  const dbOptions = {
-    host: 'localhost',
-    port: 5432,
-    user: process.env['DB_USER'],
-    password: process.env['DB_PASSWORD'],
-    database: process.env['DB_NAME'],
-    poolSize: 10
-  };
-  const driver = new PG(dbOptions);
+  logger.setLevel('debug');
+  logger.info("Using driver <%s>", driverName);
 
-  // Init the DB & run migrations automatically
-  await db.initialize(driver, { logger, runMigrations:true });
+  User = require(`./lib/user-${driverName}`);  
+
+  const migrationsDir = Path.join(require.main.path, 'migrations', driverName);
+  const driver = User.createDriver();
+
+  // Init the DB & run migrations
+  await db.initialize(driver, { logger });
+  await db.runMigrations(migrationsDir);
 }
 
 async function shutdown() {
@@ -47,7 +53,6 @@ async function main() {
 
   // final error handler
   app.use(function(err,req,res,next) {
-    logger.info("XXXXXXXXXXXXXX");
     logger.error(err.stack||err);
     if (process.env['NODE_ENV'] === 'production'){
         res.sendStatus(err.status||500);
